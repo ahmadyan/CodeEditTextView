@@ -116,6 +116,12 @@ open class TextView: NSView, NSTextContent {
         }
     }
 
+    /// The number of estimated lines above and below the viewport to include when computing ``visibleTextRange``.
+    ///
+    /// This is primarily used to prefetch syntax highlighting so newly revealed text stays highlighted during fast
+    /// scrolling. Set to `0` to only return the exact visible range.
+    public var visibleTextRangeBufferLines: Int = 50
+
     /// Whether or not the editor should wrap lines
     public var wrapLines: Bool {
         get {

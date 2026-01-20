@@ -46,10 +46,25 @@ extension TextView {
     }
 
     public var visibleTextRange: NSRange? {
-        let minY = max(visibleRect.minY, 0)
-        let maxY = min(visibleRect.maxY, layoutManager.estimatedHeight())
-        guard let minYLine = layoutManager.textLineForPosition(minY),
-              let maxYLine = layoutManager.textLineForPosition(maxY) else {
+        // Expand the visible rect by a small buffer so syntax highlighting can be prefetched.
+        // This prevents newly visible text from appearing as "plain" during fast scrolling.
+        let estimatedHeight = layoutManager.estimatedHeight()
+
+        let bufferLines = max(0, min(visibleTextRangeBufferLines, 500))
+        let lineHeight = max(layoutManager.estimateLineHeight(), 1)
+        let buffer = CGFloat(bufferLines) * lineHeight
+
+        // Clamp into the document content height (not including overscroll padding).
+        var minY = max(visibleRect.minY - buffer, 0)
+        var maxY = min(visibleRect.maxY + buffer, estimatedHeight)
+        minY = min(minY, estimatedHeight) // Handle overscroll past the end of the document
+
+        // Avoid querying exactly at the document boundary where line lookups may fail.
+        let maxYPos = max(0, min(maxY, max(estimatedHeight - 1, 0)))
+        let minYPos = max(0, min(minY, maxYPos))
+
+        guard let minYLine = layoutManager.textLineForPosition(minYPos),
+              let maxYLine = layoutManager.textLineForPosition(maxYPos) else {
             return nil
         }
         return NSRange(
