@@ -20,11 +20,10 @@ public final class TextLine: Identifiable, Equatable {
         typesetter.lineFragments
     }
 
-    /// Marks this line as needing layout.
-    /// Note: The typesetter is preserved until `prepareForDisplay` is called to avoid
-    /// flashing unhighlighted text while waiting for new syntax highlighting data.
+    /// Marks this line as needing layout and clears all typesetting data.
     public func setNeedsLayout() {
         needsLayout = true
+        typesetter = Typesetter()
     }
 
     /// Determines if the line needs to be laid out again.
